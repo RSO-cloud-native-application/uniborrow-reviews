@@ -23,6 +23,8 @@
         <kumuluzee.version>3.12.2</kumuluzee.version>
         <kumuluzee-rest.version>1.5.1</kumuluzee-rest.version>
         <kumuluzee-health.version>2.4.2</kumuluzee-health.version>
+        <kumuluzee-config.version>1.3.0</kumuluzee-config.version>
+        <kumuluzee-discovery.version>1.1.1</kumuluzee-discovery.version>
 
         <postgresql.version>42.3.0</postgresql.version>
     </properties>
@@ -47,6 +49,18 @@
                 <groupId>com.kumuluz.ee.health</groupId>
                 <artifactId>kumuluzee-health</artifactId>
                 <version>${kumuluzee-health.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>kumuluzee-config-etcd</artifactId>
+                <groupId>com.kumuluz.ee.config</groupId>
+                <version>${kumuluzee-config.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.kumuluz.ee.discovery</groupId>
+                <artifactId>kumuluzee-discovery-etcd</artifactId>
+                <version>${kumuluzee-discovery.version}</version>
             </dependency>
 
             <dependency>

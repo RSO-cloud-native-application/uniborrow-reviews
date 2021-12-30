@@ -4,7 +4,7 @@ kumuluzee:
     name: dev
   version: 1.0.0
   server:
-    base-location: http://localhost:8080
+    base-url: http://localhost:8080
     http:
       port: 8080
   datasources:
@@ -19,3 +19,14 @@ kumuluzee:
       data-source-health-check:
         type: liveness
         jndi-name: jdbc/ReviewsDB
+  config:
+    start-retry-delay-ms: 500
+    max-retry-delay-ms: 900000
+    etcd:
+      hosts: 'http://localhost:2379'
+  discovery:
+    etcd:
+      hosts: 'http://localhost:2379'
+admin-properties:
+  disable-items: false
+  disable-users: false
