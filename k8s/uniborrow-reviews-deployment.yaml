@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uniborrow-reviews-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uniborrow-reviews
+  template:
+    metadata:
+      labels:
+        app: uniborrow-reviews
+    spec:
+      containers:
+        - image: lh5107/uniborrow-reviews:2021-12-31-00-45-44
+          name: uniborrow-reviews
+          env:
+            - name: KUMULUZEE_DATASOURCES0_CONNECTIONURL
+              value: jdbc:postgresql://tyke.db.elephantsql.com:5432/fcdfkzbj
+            - name: KUMULUZEE_DATASOURCES0_USERNAME
+              value: fcdfkzbj
+            - name: KUMULUZEE_DATASOURCES0_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uniborrow-reviews-db-pass
+                  key: password
+            - name: KUMULUZEE_CONFIG_CONSUL_AGENT
+              value: http://consul-server:8500
+            - name: KUMULUZEE_DISCOVERY_CONSUL_AGENT
+              value: http://consul-server:8500
+            - name: KUMULUZEE_DISCOVERY_CLUSTER
+              value: uniborrow-cluster
+          ports:
+            - containerPort: 8080
+              name: server
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: server
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: server
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: uniborrow-reviews
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+  selector:
+    app: uniborrow-reviews
