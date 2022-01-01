@@ -1,5 +1,6 @@
 package si.fri.rso.uniborrow.reviews.api.v1.resources;
 
+import com.kumuluz.ee.logs.cdi.Log;
 import si.fri.rso.uniborrow.reviews.lib.UserReview;
 import si.fri.rso.uniborrow.reviews.services.beans.UserReviewBean;
 
@@ -11,6 +12,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.logging.Logger;
 
+@Log
 @ApplicationScoped
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
