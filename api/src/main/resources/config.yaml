@@ -27,6 +27,20 @@ kumuluzee:
   discovery:
     etcd:
       hosts: 'http://localhost:2379'
+  metrics:
+    servlet:
+      enabled: true
+      mapping: /metrics/*
+    web-instrumentation:
+      - name: metrics-endpoint
+        url-pattern: /metrics/*
+        status-codes: "200, 500"
+      - name: user-reviews-endpoint
+        url-pattern: /v1/users*
+        status-codes: "200, 500"
+      - name: item-reviews-endpoint
+        url-pattern: /v1/items*
+        status-codes: "200, 500"
   log:
     config-file: '<?xml version="1.0" encoding="UTF-8"?>
                             <Configuration name="comments">

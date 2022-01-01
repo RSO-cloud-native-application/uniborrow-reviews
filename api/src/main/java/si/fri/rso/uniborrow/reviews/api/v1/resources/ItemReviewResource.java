@@ -1,6 +1,8 @@
 package si.fri.rso.uniborrow.reviews.api.v1.resources;
 
 import com.kumuluz.ee.logs.cdi.Log;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import si.fri.rso.uniborrow.reviews.lib.ItemReview;
 import si.fri.rso.uniborrow.reviews.services.beans.ItemReviewBean;
 
@@ -25,6 +27,7 @@ public class ItemReviewResource {
     private ItemReviewBean itemReviewBean;
 
     @GET
+    @Timed(name = "get_item_reviews_time")
     public Response getItemReviews(
             @QueryParam("userId") Integer userId,
             @QueryParam("itemId") Integer itemId
@@ -52,6 +55,7 @@ public class ItemReviewResource {
     }
 
     @POST
+    @Counted(name = "num_created_item_reviews")
     public Response createItemReview(ItemReview itemReview) {
         try {
             ItemReview created = itemReviewBean.createItemReview(itemReview);
@@ -65,6 +69,7 @@ public class ItemReviewResource {
 
     @DELETE
     @Path("/{itemReviewId}")
+    @Counted(name = "num_deleted_item_reviews")
     public Response deleteItemReview(@PathParam("itemReviewId") Integer itemReviewId) {
         try {
             boolean success = itemReviewBean.deleteItemReview(itemReviewId);

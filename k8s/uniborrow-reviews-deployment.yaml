@@ -13,7 +13,7 @@ spec:
         app: uniborrow-reviews
     spec:
       containers:
-        - image: lh5107/uniborrow-reviews:2021-12-31-04-15-13
+        - image: lh5107/uniborrow-reviews:2022-01-01-20-34-27
           name: uniborrow-reviews
           env:
             - name: KUMULUZEE_DATASOURCES0_CONNECTIONURL
