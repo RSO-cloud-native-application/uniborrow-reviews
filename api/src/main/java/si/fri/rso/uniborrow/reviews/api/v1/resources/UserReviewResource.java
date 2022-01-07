@@ -1,15 +1,23 @@
 package si.fri.rso.uniborrow.reviews.api.v1.resources;
 
+import com.kumuluz.ee.discovery.annotations.DiscoverService;
 import com.kumuluz.ee.logs.cdi.Log;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import si.fri.rso.uniborrow.reviews.lib.UserReview;
 import si.fri.rso.uniborrow.reviews.services.beans.UserReviewBean;
+import si.fri.rso.uniborrow.reviews.services.clients.UniborrowItemApi;
+import si.fri.rso.uniborrow.reviews.services.clients.UniborrowUserApi;
+import si.fri.rso.uniborrow.reviews.services.dtos.UniborrowUserRequest;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Log
@@ -23,6 +31,22 @@ public class UserReviewResource {
 
     @Inject
     private UserReviewBean userReviewBean;
+
+    @Inject
+    @DiscoverService(value = "uniborrow-users-service", version = "1.0.0", environment = "dev")
+    private Optional<URL> usersServiceUrl;
+
+    private UniborrowUserApi uniborrowUserApi;
+
+    @PostConstruct
+    private void init() {
+        if (usersServiceUrl != null && usersServiceUrl.isPresent()) {
+            uniborrowUserApi = RestClientBuilder
+                    .newBuilder()
+                    .baseUrl(usersServiceUrl.get())
+                    .build(UniborrowUserApi.class);
+        }
+    }
 
     @GET
     public Response getUserReviews(
@@ -53,6 +77,14 @@ public class UserReviewResource {
 
     @POST
     public Response createItemReview(UserReview userReview) {
+        if (userReview == null || userReview.getUserReviewId() == null || userReview.getUserId() == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        UniborrowUserRequest user = uniborrowUserApi.getById(userReview.getUserId());
+        UniborrowUserRequest userReviewer = uniborrowUserApi.getById(userReview.getUserReviewerId());
+        if (user == null || userReviewer == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         try {
             UserReview created = userReviewBean.createUserReview(userReview);
             return (created != null)

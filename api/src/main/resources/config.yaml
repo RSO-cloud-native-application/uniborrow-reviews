@@ -41,6 +41,12 @@ kumuluzee:
       - name: item-reviews-endpoint
         url-pattern: /v1/items*
         status-codes: "200, 500"
+  rest-client:
+    registrations:
+      - class: uniborrow-users-api
+        read-timeout: 5000
+      - class: uniborrow-items-api
+        read-timeout: 5000
   log:
     config-file: '<?xml version="1.0" encoding="UTF-8"?>
                             <Configuration name="comments">
