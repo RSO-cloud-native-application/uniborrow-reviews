@@ -4,6 +4,15 @@ import com.kumuluz.ee.discovery.annotations.DiscoverService;
 import com.kumuluz.ee.logs.cdi.Log;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.ParameterIn;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import si.fri.rso.uniborrow.reviews.lib.ItemReview;
 import si.fri.rso.uniborrow.reviews.services.beans.ItemReviewBean;
@@ -65,10 +74,27 @@ public class ItemReviewResource {
 
     @GET
     @Timed(name = "get_item_reviews_time")
+    @Operation(
+            description = "Get item reviews based on query parameters. We can get all item reviews, reviews for a specific item or reviews by a specific user.",
+            summary = "Get item reviews"
+    )
+    @APIResponses(
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Array of DTO representing item reviews",
+                    content = @Content(schema = @Schema(implementation = ItemReview.class, type = SchemaType.ARRAY))
+            )
+    )
     public Response getItemReviews(
-            @QueryParam("userId") Integer userId,
-            @QueryParam("itemId") Integer itemId
-    ) {
+            @Parameter(
+                    description = "User ID",
+                    in = ParameterIn.QUERY
+            ) @QueryParam("userId") Integer userId,
+            @Parameter(
+                    description = "Item ID",
+                    in = ParameterIn.QUERY
+            )
+            @QueryParam("itemId") Integer itemId) {
         List<ItemReview> results;
         if (userId != null) {
             results = itemReviewBean.getItemReviewsByUser(userId);
@@ -83,7 +109,23 @@ public class ItemReviewResource {
 
     @GET
     @Path("/{itemReviewId}")
-    public Response getItemReview(@PathParam("itemReviewId") Integer itemReviewId) {
+    @Operation(description = "Get an item review by its ID", summary = "Get an item review")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "DTO for item review",
+                    content = @Content(schema = @Schema(implementation = ItemReview.class))
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "Item review not found"
+            )
+    })
+    public Response getItemReview(
+            @Parameter(
+                    description = "Item Review ID",
+                    required = true
+            ) @PathParam("itemReviewId") Integer itemReviewId) {
         ItemReview itemReview = itemReviewBean.getItemReview(itemReviewId);
         if (itemReview == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -93,7 +135,28 @@ public class ItemReviewResource {
 
     @POST
     @Counted(name = "num_created_item_reviews")
-    public Response createItemReview(ItemReview itemReview) {
+    @Operation(description = "Create an item review", summary = "Create an item review")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "201",
+                    description = "Successfully added an item review",
+                    content = @Content(schema = @Schema(implementation = ItemReview.class))
+            ),
+            @APIResponse(
+                    responseCode = "400",
+                    description = "Bad request"
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "Item or user not found"
+            )
+    })
+    public Response createItemReview(
+            @RequestBody(
+                    description = "DTO for item review",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = ItemReview.class))
+            ) ItemReview itemReview) {
         if (itemReview.getItemId() == null || itemReview.getUserReviewerId() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -115,7 +178,22 @@ public class ItemReviewResource {
     @DELETE
     @Path("/{itemReviewId}")
     @Counted(name = "num_deleted_item_reviews")
-    public Response deleteItemReview(@PathParam("itemReviewId") Integer itemReviewId) {
+    @Operation(description = "Delete an item review.", summary = "Delete an item review")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "204",
+                    description = "Successfully deleted an item review"
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "Item review not found"
+            )
+    })
+    public Response deleteItemReview(
+            @Parameter(
+                    description = "Item review ID",
+                    required = true
+            ) @PathParam("itemReviewId") Integer itemReviewId) {
         try {
             boolean success = itemReviewBean.deleteItemReview(itemReviewId);
             return success

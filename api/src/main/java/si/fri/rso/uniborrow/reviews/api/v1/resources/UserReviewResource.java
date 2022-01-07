@@ -2,6 +2,15 @@ package si.fri.rso.uniborrow.reviews.api.v1.resources;
 
 import com.kumuluz.ee.discovery.annotations.DiscoverService;
 import com.kumuluz.ee.logs.cdi.Log;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.ParameterIn;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import si.fri.rso.uniborrow.reviews.lib.UserReview;
 import si.fri.rso.uniborrow.reviews.services.beans.UserReviewBean;
@@ -49,10 +58,23 @@ public class UserReviewResource {
     }
 
     @GET
+    @Operation(description = "Get all user reviews, for specific user or by a specific user", summary = "Get user reviews")
+    @APIResponses(
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Array of DTOs representing user reviews",
+                    content = @Content(schema = @Schema(implementation = UserReview.class, type = SchemaType.ARRAY))
+            )
+    )
     public Response getUserReviews(
-            @QueryParam("forUserId") Integer forUserId,
-            @QueryParam("byUserId") Integer byUserId
-    ) {
+            @Parameter(
+                    description = "User ID for which we want reviews",
+                    in = ParameterIn.QUERY
+            ) @QueryParam("forUserId") Integer forUserId,
+            @Parameter(
+                    description = "User ID from whom we want reviews",
+                    in = ParameterIn.QUERY
+            ) @QueryParam("byUserId") Integer byUserId) {
         List<UserReview> results;
         if (forUserId != null) {
             results = userReviewBean.getUserReviewsForUser(forUserId);
@@ -67,7 +89,23 @@ public class UserReviewResource {
 
     @GET
     @Path("/{userReviewId}")
-    public Response getItemReview(@PathParam("userReviewId") Integer userReviewId) {
+    @Operation(description = "Get a specific user review", summary = "Get a user review")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "DTO representing a user review",
+                    content = @Content(schema = @Schema(implementation = UserReview.class))
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "User review not found"
+            )
+    })
+    public Response getItemReview(
+            @Parameter(
+                    description = "User review ID",
+                    required = true
+            ) @PathParam("userReviewId") Integer userReviewId) {
         UserReview userReview = userReviewBean.getUserReview(userReviewId);
         if (userReview == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -76,7 +114,23 @@ public class UserReviewResource {
     }
 
     @POST
-    public Response createItemReview(UserReview userReview) {
+    @Operation(description = "Create a user review", summary = "Crate a user review")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "201",
+                    description = "Successfully created a user review",
+                    content = @Content(schema = @Schema(implementation = UserReview.class))
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "User not found"
+            )
+    })
+    public Response createItemReview(
+            @RequestBody(
+                    description = "DTO representing user review",
+                    required = true
+            ) UserReview userReview) {
         if (userReview == null || userReview.getUserReviewId() == null || userReview.getUserId() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -97,7 +151,22 @@ public class UserReviewResource {
 
     @DELETE
     @Path("/{userReviewId}")
-    public Response deleteItemReview(@PathParam("userReviewId") Integer userReviewId) {
+    @Operation(description = "Delete a user review", summary = "Delete a user review")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "204",
+                    description = "Successfully deleted a user review"
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "User review not found"
+            )
+    })
+    public Response deleteItemReview(
+            @Parameter(
+                    description = "User review ID",
+                    required = true
+            ) @PathParam("userReviewId") Integer userReviewId) {
         try {
             boolean success = userReviewBean.deleteUserReview(userReviewId);
             return success
