@@ -19,6 +19,8 @@ kumuluzee:
       data-source-health-check:
         type: liveness
         jndi-name: jdbc/ReviewsDB
+      etcd-health-check:
+        connection-url: http://localhost:2379/health
   config:
     start-retry-delay-ms: 500
     max-retry-delay-ms: 900000
