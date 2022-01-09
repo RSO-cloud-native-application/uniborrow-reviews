@@ -52,11 +52,11 @@ kumuluzee:
   openapi-mp:
     enabled: true
     servlet:
-      mapping: /uniborrow-reviews-openapi
+      mapping: /uniborrow-reviews/openapi
     ui:
       enabled: true
-      mapping: /uniborrow-reviews-openapi/ui
-      specification-server: http://localhost:8080/
+      mapping: /uniborrow-reviews/openapi/ui
+      specification-server: http://localhost:8080
   dev:
     scan-libraries:
       - reviews-lib
