@@ -1,5 +1,8 @@
 package si.fri.rso.uniborrow.reviews.services.beans;
 
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import si.fri.rso.uniborrow.reviews.lib.HelperFunctions;
 import si.fri.rso.uniborrow.reviews.lib.ItemReview;
 import si.fri.rso.uniborrow.reviews.models.models.converters.ItemReviewConverter;
@@ -10,6 +13,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.NotFoundException;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -28,11 +33,18 @@ public class ItemReviewBean {
         return resultList.stream().map(ItemReviewConverter::toDto).collect(Collectors.toList());
     }
 
+    @CircuitBreaker
+    @Timeout(value = 2, unit = ChronoUnit.SECONDS)
+    @Fallback(fallbackMethod = "getItemReviewsForItemFallback")
     public List<ItemReview> getItemReviewsForItem(Integer itemId) {
         TypedQuery<ItemReviewEntity> query = em.createNamedQuery("ItemReviewEntity.getForItem", ItemReviewEntity.class)
                 .setParameter("itemId", itemId);
         List<ItemReviewEntity> resultList = query.getResultList();
         return resultList.stream().map(ItemReviewConverter::toDto).collect(Collectors.toList());
+    }
+
+    public List<ItemReview> getItemReviewsForItemFallback(Integer itemId) {
+        return new ArrayList<>();
     }
 
     public List<ItemReview> getItemReviewsByUser(Integer userId) {

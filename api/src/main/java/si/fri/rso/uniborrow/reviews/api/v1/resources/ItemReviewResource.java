@@ -2,6 +2,9 @@ package si.fri.rso.uniborrow.reviews.api.v1.resources;
 
 import com.kumuluz.ee.discovery.annotations.DiscoverService;
 import com.kumuluz.ee.logs.cdi.Log;
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -28,6 +31,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URL;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -151,16 +155,20 @@ public class ItemReviewResource {
                     description = "Item or user not found"
             )
     })
+    @CircuitBreaker
+    @Timeout(value = 5, unit = ChronoUnit.SECONDS)
+    @Fallback(fallbackMethod = "createItemReviewFallback")
     public Response createItemReview(
             @RequestBody(
                     description = "DTO for item review",
                     required = true,
                     content = @Content(schema = @Schema(implementation = ItemReview.class))
-            ) ItemReview itemReview) {
+            ) ItemReview itemReview) throws Exception {
         if (itemReview.getItemId() == null || itemReview.getUserReviewerId() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        UniborrowUserRequest user = uniborrowUserApi.getById(itemReview.getUserReviewerId());
+        UniborrowUserRequest user = uniborrowUserApi.getByIdAsync(itemReview.getUserReviewerId())
+                .toCompletableFuture().get();
         UniborrowItemRequest item = uniborrowItemApi.getById(itemReview.getItemId());
         if (user == null || item == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -173,6 +181,10 @@ public class ItemReviewResource {
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+    }
+
+    public Response createItemReviewFallback(ItemReview itemReview) {
+        return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
     }
 
     @DELETE
